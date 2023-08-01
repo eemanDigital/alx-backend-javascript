@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 export default function getListStudents() {
   const ArrOfObj = [
     { id : 1, firstName : 'Guillaume', location : 'San Francisco'},
