@@ -1,17 +1,45 @@
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
 
+/**
+ * Counts the students in a CSV data file.
+ * @param {String} filePath The path to the CSV data file.
+ */
+const countStudents = (filePath) => {
+  if (!fs.existsSync(filePath)) {
+    throw new Error('Cannot load the database');
+  }
+  if (!fs.statSync(filePath).isFile()) {
+    throw new Error('Cannot load the database');
+  }
+  const fileLines = fs
+    .readFileSync(filePath, 'utf-8')
+    .toString('utf-8')
+    .trim()
+    .split('\n');
+  const studentGroups = {};
+  const dbFieldNames = fileLines[0].split(',');
+  const studentPropNames = dbFieldNames.slice(0, dbFieldNames.length - 1);
 
-function countStudents(fileDir){
-    const file = fs.readFileSync(fileDir, 'utf-8', (err, data)=> {
-        if(!file) console.err(err)
-    })
-   
-    return console.log("file loaded")
-}
+  for (const line of fileLines.slice(1)) {
+    const studentRecord = line.split(',');
+    const studentPropValues = studentRecord.slice(0, studentRecord.length - 1);
+    const field = studentRecord[studentRecord.length - 1];
+    if (!Object.keys(studentGroups).includes(field)) {
+      studentGroups[field] = [];
+    }
+    const studentEntries = studentPropNames
+      .map((propName, index) => [propName, studentPropValues[index]]);
+    studentGroups[field].push(Object.fromEntries(studentEntries));
+  }
 
-const dir = path.join(__dirname, './databas.csv') 
-// const dir = path.join('data.csv');
+  const totalStudents = Object
+    .values(studentGroups)
+    .reduce((pre, cur) => (pre || []).length + cur.length);
+  console.log(`Number of students: ${totalStudents}`);
+  for (const [field, group] of Object.entries(studentGroups)) {
+    const studentNames = group.map((student) => student.firstname).join(', ');
+    console.log(`Number of students in ${field}: ${group.length}. List: ${studentNames}`);
+  }
+};
 
-
-countStudents(dir)
+module.exports = countStudents;
